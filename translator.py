@@ -7,8 +7,8 @@ import tempfile
 
 app = tk.Tk()
 app.title("Language Translator — CodeAlpha")
-app.geometry("600x520")
-app.configure(bg="#2b2b3b")
+app.geometry("680x680")
+app.configure(bg="#0f0f1a")
 app.resizable(False, False)
 
 pygame.mixer.init()
@@ -40,53 +40,188 @@ LANGUAGES = {
     "Punjabi": "pa",
 }
 
-lang_names = list(LANGUAGES.keys())
+lang_names   = list(LANGUAGES.keys())
+target_langs = lang_names[1:]
 
-BG     = "#2b2b3b"
-BOX    = "#1e1e2e"
-ACCENT = "#7c3aed"
-TEXT   = "#e2e8f0"
-MUTED  = "#9ca3af"
-GREEN  = "#6ee7b7"
-FONT     = ("Segoe UI", 11)
-FONT_BIG = ("Segoe UI", 13)
+BG       = "#0f0f1a"
+CARD     = "#16162a"
+CARD2    = "#1e1e35"
+BORDER   = "#2e2e50"
+ACCENT   = "#7c3aed"
+ACCENT2  = "#6d28d9"
+TEXT     = "#f1f0ff"
+MUTED    = "#6b7280"
+GREEN    = "#10b981"
+GREEN2   = "#059669"
+PINK     = "#ec4899"
+FONT_SM  = ("Arial", 9)
+FONT_LG  = ("Arial", 12)
+FONT_BOLD= ("Arial", 11, "bold")
 
-def styled_label(parent, text, **kw):
-    return tk.Label(parent, text=text, bg=BG, fg=MUTED, font=FONT, **kw)
+# ── Header ─────────────────────────────────────────────────
+header = tk.Frame(app, bg=CARD, height=70)
+header.pack(fill="x")
+header.pack_propagate(False)
 
-tk.Label(app, text="Language Translator", bg=BG, fg="#a78bfa",
-         font=("Segoe UI", 16, "bold")).pack(pady=(18, 4))
-tk.Label(app, text="CodeAlpha Internship — Task 1", bg=BG,
-         fg=MUTED, font=("Segoe UI", 9)).pack(pady=(0, 14))
+tk.Label(header, text="Language Translator", bg=CARD, fg=TEXT,
+         font=("Arial", 17, "bold")).place(x=24, y=10)
+tk.Label(header, text="Powered by Google Translate  •  CodeAlpha Task 1",
+         bg=CARD, fg=MUTED, font=FONT_SM).place(x=25, y=40)
+tk.Label(header, text="  CodeAlpha Internship  ",
+         bg=ACCENT, fg="white", font=FONT_SM,
+         padx=6, pady=3).place(x=500, y=22)
 
-sel_frame = tk.Frame(app, bg=BG)
-sel_frame.pack(padx=30, fill="x")
+tk.Frame(app, bg=BORDER, height=1).pack(fill="x")
 
-styled_label(sel_frame, "Source language:").grid(row=0, column=0, sticky="w", pady=4)
-src_combo = ttk.Combobox(sel_frame, values=lang_names, font=FONT, state="readonly", width=28)
+# ── Main ───────────────────────────────────────────────────
+main = tk.Frame(app, bg=BG)
+main.pack(fill="both", expand=True, padx=24, pady=16)
+
+# ── Language Row ───────────────────────────────────────────
+lang_row = tk.Frame(main, bg=BG)
+lang_row.pack(fill="x", pady=(0, 12))
+
+style = ttk.Style()
+style.theme_use("clam")
+style.configure("M.TCombobox",
+                fieldbackground=CARD2,
+                background=CARD2,
+                foreground=TEXT,
+                arrowcolor=ACCENT,
+                bordercolor=BORDER,
+                lightcolor=CARD2,
+                darkcolor=CARD2,
+                selectbackground=ACCENT,
+                selectforeground="white",
+                padding=8)
+style.map("M.TCombobox",
+          fieldbackground=[("readonly", CARD2)],
+          background=[("readonly", CARD2)],
+          foreground=[("readonly", TEXT)])
+
+src_card = tk.Frame(lang_row, bg=CARD,
+                    highlightbackground=BORDER, highlightthickness=1)
+src_card.pack(side="left", expand=True, fill="x")
+tk.Label(src_card, text="FROM", bg=CARD, fg=MUTED,
+         font=("Arial", 8, "bold")).pack(anchor="w", padx=14, pady=(10,4))
+src_combo = ttk.Combobox(src_card, values=lang_names,
+                         style="M.TCombobox", state="readonly",
+                         font=FONT_LG, width=20)
 src_combo.current(0)
-src_combo.grid(row=0, column=1, padx=(10,0), pady=4)
+src_combo.pack(padx=10, pady=(0,10), fill="x")
 
-styled_label(sel_frame, "Target language:").grid(row=1, column=0, sticky="w", pady=4)
-tgt_combo = ttk.Combobox(sel_frame, values=lang_names[1:], font=FONT, state="readonly", width=28)
+swap_frame = tk.Frame(lang_row, bg=BG, width=54)
+swap_frame.pack(side="left", padx=8)
+swap_frame.pack_propagate(False)
+
+def do_swap():
+    s = src_combo.get()
+    t = tgt_combo.get()
+    if s != "Auto Detect":
+        src_combo.set(t)
+        tgt_combo.set(s)
+
+swap_btn = tk.Label(swap_frame, text="⇄", bg=CARD2, fg=ACCENT,
+                    font=("Arial", 18, "bold"), cursor="hand2",
+                    highlightbackground=BORDER, highlightthickness=1)
+swap_btn.pack(expand=True, fill="both")
+swap_btn.bind("<Button-1>", lambda e: do_swap())
+swap_btn.bind("<Enter>",    lambda e: swap_btn.configure(bg=ACCENT, fg="white"))
+swap_btn.bind("<Leave>",    lambda e: swap_btn.configure(bg=CARD2,  fg=ACCENT))
+
+tgt_card = tk.Frame(lang_row, bg=CARD,
+                    highlightbackground=BORDER, highlightthickness=1)
+tgt_card.pack(side="left", expand=True, fill="x")
+tk.Label(tgt_card, text="TO", bg=CARD, fg=MUTED,
+         font=("Arial", 8, "bold")).pack(anchor="w", padx=14, pady=(10,4))
+tgt_combo = ttk.Combobox(tgt_card, values=target_langs,
+                         style="M.TCombobox", state="readonly",
+                         font=FONT_LG, width=20)
 tgt_combo.current(1)
-tgt_combo.grid(row=1, column=1, padx=(10,0), pady=4)
+tgt_combo.pack(padx=10, pady=(0,10), fill="x")
 
-styled_label(app, "Enter text to translate:").pack(anchor="w", padx=30, pady=(10,2))
-input_text = tk.Text(app, height=5, width=68, bg=BOX, fg=TEXT,
-                     font=FONT_BIG, insertbackground=TEXT,
-                     relief="flat", padx=10, pady=8, wrap="word")
-input_text.pack(padx=30)
+# ── Input Box ──────────────────────────────────────────────
+in_frame = tk.Frame(main, bg=CARD,
+                    highlightbackground=BORDER, highlightthickness=1)
+in_frame.pack(fill="x", pady=(0,4))
 
-btn_frame = tk.Frame(app, bg=BG)
-btn_frame.pack(pady=10, padx=30, fill="x")
+in_top = tk.Frame(in_frame, bg=CARD)
+in_top.pack(fill="x", padx=14, pady=(10,4))
+tk.Label(in_top, text="ENTER TEXT", bg=CARD, fg=MUTED,
+         font=("Arial", 8, "bold")).pack(side="left")
+char_var = tk.StringVar(value="0 / 500")
+tk.Label(in_top, textvariable=char_var, bg=CARD,
+         fg=MUTED, font=FONT_SM).pack(side="right")
 
+input_text = tk.Text(in_frame, height=5, bg=CARD, fg=TEXT,
+                     font=FONT_LG, insertbackground=ACCENT,
+                     relief="flat", padx=14, pady=6,
+                     wrap="word", selectbackground=ACCENT,
+                     selectforeground="white", bd=0)
+input_text.pack(fill="x", pady=(0,10))
+
+def on_key(e):
+    c = len(input_text.get("1.0", "end").strip())
+    char_var.set(f"{c} / 500")
+input_text.bind("<KeyRelease>", on_key)
+
+# ── Translate Button ───────────────────────────────────────
+def make_btn(parent, text, color, hover, cmd):
+    b = tk.Button(parent, text=text, bg=color, fg="white",
+                  font=FONT_BOLD, relief="flat", cursor="hand2",
+                  pady=10, command=cmd, bd=0,
+                  activebackground=hover, activeforeground="white")
+    b.bind("<Enter>", lambda e: b.configure(bg=hover))
+    b.bind("<Leave>", lambda e: b.configure(bg=color))
+    return b
+
+make_btn(main, "Translate  →", ACCENT, ACCENT2,
+         lambda: do_translate()).pack(fill="x", pady=8)
+
+# ── Output Box ─────────────────────────────────────────────
+out_frame = tk.Frame(main, bg=CARD,
+                     highlightbackground=BORDER, highlightthickness=1)
+out_frame.pack(fill="x", pady=(0,10))
+
+out_top = tk.Frame(out_frame, bg=CARD)
+out_top.pack(fill="x", padx=14, pady=(10,4))
+tk.Label(out_top, text="TRANSLATION", bg=CARD, fg=MUTED,
+         font=("Arial", 8, "bold")).pack(side="left")
+status_var = tk.StringVar()
+status_lbl = tk.Label(out_top, textvariable=status_var,
+                      bg=CARD, fg=GREEN, font=FONT_SM)
+status_lbl.pack(side="right")
+
+output_text = tk.Text(out_frame, height=5, bg=CARD, fg=GREEN,
+                      font=FONT_LG, relief="flat", padx=14,
+                      pady=6, wrap="word", state="disabled",
+                      selectbackground=GREEN2,
+                      selectforeground="white", bd=0)
+output_text.pack(fill="x", pady=(0,10))
+
+# ── Action Buttons ─────────────────────────────────────────
+btn_row = tk.Frame(main, bg=BG)
+btn_row.pack(fill="x", pady=(0,8))
+
+make_btn(btn_row, "Speak",  GREEN,  GREEN2, lambda: do_speak()).pack(side="left", expand=True, fill="x", padx=(0,6))
+make_btn(btn_row, "Copy",   CARD2,  BORDER, lambda: do_copy()).pack(side="left", expand=True, fill="x", padx=6)
+make_btn(btn_row, "Clear",  CARD2,  BORDER, lambda: do_clear()).pack(side="left", expand=True, fill="x", padx=(6,0))
+
+# ── Footer ─────────────────────────────────────────────────
+tk.Frame(app, bg=BORDER, height=1).pack(fill="x")
+tk.Label(app, text="Language Translator  •  CodeAlpha AI Internship  •  Task 1",
+         bg=CARD, fg=MUTED, font=FONT_SM, pady=8).pack(fill="x")
+
+# ── Logic ──────────────────────────────────────────────────
 def do_translate():
     text = input_text.get("1.0", "end").strip()
     if not text:
         messagebox.showwarning("Empty", "Please enter some text first.")
         return
     try:
+        status_var.set("Translating...")
+        status_lbl.configure(fg=MUTED)
+        app.update()
         src = LANGUAGES[src_combo.get()]
         tgt = LANGUAGES[tgt_combo.get()]
         result = GoogleTranslator(source=src, target=tgt).translate(text)
@@ -94,11 +229,11 @@ def do_translate():
         output_text.delete("1.0", "end")
         output_text.insert("end", result)
         output_text.configure(state="disabled")
-        status_var.set("Translation successful")
-        status_label.configure(fg=GREEN)
+        status_var.set("✓ Translation successful")
+        status_lbl.configure(fg=GREEN)
     except Exception as e:
-        status_var.set(f"Error: {e}")
-        status_label.configure(fg="#f87171")
+        status_var.set(f"✗ Error: {e}")
+        status_lbl.configure(fg=PINK)
 
 def do_speak():
     text = output_text.get("1.0", "end").strip()
@@ -106,25 +241,28 @@ def do_speak():
         messagebox.showwarning("Empty", "Translate something first.")
         return
     try:
+        import os, time
         tgt = LANGUAGES[tgt_combo.get()]
         tts = gTTS(text=text, lang=tgt)
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
-            tts.save(f.name)
-            pygame.mixer.music.load(f.name)
-            pygame.mixer.music.play()
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+        audio_path = os.path.join(os.path.expanduser("~"), f"tts_{int(time.time())}.mp3")
+        tts.save(audio_path)
+        pygame.mixer.music.load(audio_path)
+        pygame.mixer.music.play()
         status_var.set("Speaking...")
-        status_label.configure(fg=GREEN)
+        status_lbl.configure(fg=GREEN)
     except Exception as e:
-        status_var.set(f"TTS Error: {e}")
-        status_label.configure(fg="#f87171")
-
+        status_var.set(f"✗ TTS Error: {e}")
+        status_lbl.configure(fg=PINK)
+        
 def do_copy():
     text = output_text.get("1.0", "end").strip()
     if text:
         app.clipboard_clear()
         app.clipboard_append(text)
-        status_var.set("Copied to clipboard!")
-        status_label.configure(fg=GREEN)
+        status_var.set("✓ Copied!")
+        status_lbl.configure(fg=GREEN)
 
 def do_clear():
     input_text.delete("1.0", "end")
@@ -132,27 +270,6 @@ def do_clear():
     output_text.delete("1.0", "end")
     output_text.configure(state="disabled")
     status_var.set("")
-
-BTN_CFG = dict(font=("Segoe UI", 10, "bold"), relief="flat",
-               padx=12, pady=7, cursor="hand2")
-
-tk.Button(btn_frame, text="Translate", bg=ACCENT, fg="white",
-          command=do_translate, **BTN_CFG).pack(side="left", expand=True, fill="x", padx=(0,4))
-tk.Button(btn_frame, text="Speak", bg="#1d9e75", fg="white",
-          command=do_speak, **BTN_CFG).pack(side="left", padx=4)
-tk.Button(btn_frame, text="Copy", bg="#3b3b50", fg=TEXT,
-          command=do_copy, **BTN_CFG).pack(side="left", padx=4)
-tk.Button(btn_frame, text="Clear", bg="#3b3b50", fg=TEXT,
-          command=do_clear, **BTN_CFG).pack(side="left", padx=(4,0))
-
-styled_label(app, "Translation:").pack(anchor="w", padx=30, pady=(2,2))
-output_text = tk.Text(app, height=5, width=68, bg=BOX, fg=GREEN,
-                      font=FONT_BIG, relief="flat", padx=10, pady=8,
-                      wrap="word", state="disabled")
-output_text.pack(padx=30)
-
-status_var = tk.StringVar()
-status_label = tk.Label(app, textvariable=status_var, bg=BG, fg=GREEN, font=FONT)
-status_label.pack(pady=6)
+    char_var.set("0 / 500")
 
 app.mainloop()
